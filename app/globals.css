@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+:root { --ink:#1d2a24; --muted:#738078; --line:#e6ebe7; --sage:#5f7d6a; --sage-soft:#edf4ef; --cream:#f7f6f1; }
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body { background: var(--cream); color: var(--ink); font-family: Arial, Helvetica, sans-serif; }
+button { font: inherit; }
+.planner-shell { min-height:100vh; padding:32px; background:radial-gradient(circle at 90% 0%,rgba(188,208,194,.32),transparent 28%),var(--cream); }
+.topbar { max-width:1500px; margin:0 auto 28px; padding:22px 26px; display:flex; align-items:center; justify-content:space-between; gap:24px; background:rgba(255,255,255,.86); border:1px solid rgba(222,228,223,.9); border-radius:20px; box-shadow:0 14px 45px rgba(36,53,43,.06); }
+.brand-row { display:flex; align-items:center; gap:14px; }
+.brand-mark { width:44px; height:44px; border-radius:13px; display:grid; place-items:center; background:var(--ink); color:white; font-size:20px; }
+.brand-row h1 { margin:0; font:600 24px/1.1 Georgia,serif; letter-spacing:-.02em; }
+.brand-row p { margin:6px 0 0; color:var(--muted); font-size:13px; }
+.week-navigation { display:flex; align-items:center; gap:12px; }
+.week-navigation button { height:40px; border:1px solid #dce3dd; border-radius:11px; background:white; color:var(--ink); cursor:pointer; transition:transform .16s ease,background .16s ease,border-color .16s ease; }
+.week-navigation button:hover:not(:disabled) { transform:translateY(-1px); border-color:#afbeb3; background:#fafcfb; }
+.week-navigation button:focus-visible { outline:3px solid rgba(95,125,106,.25); outline-offset:2px; }
+.today-button { padding:0 17px; font-weight:600; }
+.today-button:disabled { color:#9aa39d; background:#f3f5f3; cursor:default; }
+.arrow-group { display:flex; gap:6px; }
+.arrow-group button { width:42px; font-size:18px; }
+.date-range { min-width:220px; margin:0 0 0 5px; font-weight:600; text-align:right; }
+.week-section { max-width:1500px; margin:0 auto; }
+.section-heading { display:flex; justify-content:space-between; align-items:end; padding:0 4px 14px; }
+.eyebrow { margin:0; color:var(--sage); font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.15em; }
+.week-number { margin:0; color:var(--muted); font-size:13px; }
+.week-grid { display:grid; grid-template-columns:repeat(7,minmax(165px,1fr)); min-height:610px; overflow-x:auto; background:white; border:1px solid var(--line); border-radius:20px; box-shadow:0 16px 48px rgba(36,53,43,.07); }
+.day-column { min-width:165px; display:flex; flex-direction:column; border-right:1px solid var(--line); }
+.day-column:last-child { border-right:0; }
+.day-column.is-today { background:linear-gradient(180deg,var(--sage-soft),rgba(237,244,239,.48)); }
+.day-header { min-height:94px; padding:19px 16px 15px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; gap:8px; }
+.day-name { margin:0 0 7px; font-size:13px; font-weight:700; }
+.day-date { margin:0; color:var(--muted); font:400 18px/1.1 Georgia,serif; }
+.today-pill { height:fit-content; padding:4px 7px; border-radius:999px; background:var(--sage); color:white; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; }
+.empty-state { flex:1; min-height:280px; padding:32px 12px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; color:#a2aaa5; }
+.empty-icon { width:34px; height:34px; margin-bottom:13px; display:grid; place-items:center; border:1px dashed #cbd3cd; border-radius:50%; font-size:14px; }
+.empty-state p { margin:0 0 5px; color:#7f8982; font-size:13px; font-weight:600; }
+.empty-state span:last-child { font-size:11px; }
+@media (max-width:760px) { .planner-shell{padding:16px}.topbar{align-items:flex-start;flex-direction:column;padding:18px}.week-navigation{width:100%;flex-wrap:wrap}.date-range{order:-1;width:100%;min-width:0;margin:0 0 4px;text-align:left;font-size:18px}.week-grid{min-height:520px;border-radius:16px}.brand-row p{display:none} }
+@media (prefers-reduced-motion:reduce) { .week-navigation button{transition:none} }

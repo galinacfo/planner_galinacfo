@@ -1,9 +1,10 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 type Priority = "high" | "medium" | "low";
 type Task = { id: string; title: string; date: string; priority: Priority; isCompleted: boolean };
+type PendingDelete = { task: Task; index: number };
 const STORAGE_KEY = "weeklyPlannerTasks";
 
 const DAY_NAMES = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"];
@@ -72,6 +73,10 @@ export default function Home() {
   const [priority, setPriority] = useState<Priority>("medium");
   const [titleError, setTitleError] = useState("");
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
+  const tasksRef = useRef<Task[]>([]);
+  const pendingDeleteRef = useRef<PendingDelete | null>(null);
+  const deleteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const today = useMemo(() => {
     const value = new Date();
     value.setHours(0, 0, 0, 0);
@@ -87,10 +92,18 @@ export default function Home() {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (!stored) return;
       const parsed: unknown = JSON.parse(stored);
-      if (Array.isArray(parsed)) setTasks(parsed.filter(isTask));
+      if (Array.isArray(parsed)) {
+        const validTasks = parsed.filter(isTask);
+        tasksRef.current = validTasks;
+        setTasks(validTasks);
+      }
     } catch {
       setTasks([]);
     }
+  }, []);
+
+  useEffect(() => () => {
+    if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current);
   }, []);
 
   useEffect(() => {
@@ -121,8 +134,53 @@ export default function Home() {
   }
 
   function persistTasks(updatedTasks: Task[]) {
+    tasksRef.current = updatedTasks;
     setTasks(updatedTasks);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedTasks));
+    const pending = pendingDeleteRef.current;
+    const storageTasks = pending
+      ? [...updatedTasks.slice(0, pending.index), pending.task, ...updatedTasks.slice(pending.index)]
+      : updatedTasks;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(storageTasks));
+  }
+
+  function finalizePendingDelete() {
+    if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current);
+    deleteTimerRef.current = null;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasksRef.current));
+    pendingDeleteRef.current = null;
+    setPendingDelete(null);
+  }
+
+  function deleteTask() {
+    if (!editingTaskId) return;
+    if (pendingDeleteRef.current) finalizePendingDelete();
+    const index = tasksRef.current.findIndex((task) => task.id === editingTaskId);
+    if (index < 0) return;
+    const snapshot = { task: tasksRef.current[index], index };
+    const updatedTasks = tasksRef.current.filter((task) => task.id !== editingTaskId);
+    tasksRef.current = updatedTasks;
+    setTasks(updatedTasks);
+    pendingDeleteRef.current = snapshot;
+    setPendingDelete(snapshot);
+    setIsModalOpen(false);
+    deleteTimerRef.current = setTimeout(() => {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(tasksRef.current));
+      pendingDeleteRef.current = null;
+      deleteTimerRef.current = null;
+      setPendingDelete(null);
+    }, 5000);
+  }
+
+  function undoDelete() {
+    const pending = pendingDeleteRef.current;
+    if (!pending) return;
+    if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current);
+    deleteTimerRef.current = null;
+    const restoredTasks = [...tasksRef.current];
+    restoredTasks.splice(Math.min(pending.index, restoredTasks.length), 0, pending.task);
+    pendingDeleteRef.current = null;
+    setPendingDelete(null);
+    persistTasks(restoredTasks);
   }
 
   function toggleTask(taskId: string) {
@@ -229,9 +287,21 @@ export default function Home() {
                 <div><label className="field-label" htmlFor="task-date">Дата</label><input id="task-date" type="date" required value={taskDate} onChange={(event) => setTaskDate(event.target.value)} /></div>
                 <div><label className="field-label" htmlFor="task-priority">Приоритет</label><select id="task-priority" value={priority} onChange={(event) => setPriority(event.target.value as Priority)}><option value="high">Высокий</option><option value="medium">Средний</option><option value="low">Низкий</option></select></div>
               </div>
-              <div className="modal-actions"><button className="cancel-button" type="button" onClick={() => setIsModalOpen(false)}>Отмена</button><button className="save-button" type="submit">Сохранить</button></div>
+              <div className="modal-actions">
+                {editingTaskId && <button className="delete-button" type="button" onClick={deleteTask}>Удалить</button>}
+                <span className="action-spacer" />
+                <button className="cancel-button" type="button" onClick={() => setIsModalOpen(false)}>Отмена</button>
+                <button className="save-button" type="submit">Сохранить</button>
+              </div>
             </form>
           </section>
+        </div>
+      )}
+      {pendingDelete && (
+        <div className="undo-toast" role="status" aria-live="polite">
+          <span className="toast-mark" aria-hidden="true">×</span>
+          <span>Задача удалена</span>
+          <button type="button" onClick={undoDelete}>Отменить</button>
         </div>
       )}
     </main>

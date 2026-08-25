@@ -35,7 +35,7 @@ test("stores valid tasks locally and renders titles as React text", async () => 
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
   assert.match(page, /weeklyPlannerTasks/);
   assert.match(page, /JSON\.parse\(stored\)/);
-  assert.match(page, /JSON\.stringify\(updatedTasks\)/);
+  assert.match(page, /JSON\.stringify\(storageTasks\)/);
   assert.match(page, /isCompleted: false/);
   assert.match(page, /if \(!cleanTitle\)/);
   assert.match(page, /className="task-title">\{task\.title\}<\/span>/);
@@ -49,7 +49,7 @@ test("edits, moves and toggles task completion without losing fields", async () 
   assert.match(page, /task\.id === editingTaskId \? \{ \.\.\.task, title: cleanTitle, date: taskDate, priority \}/);
   assert.match(page, /isCompleted: !task\.isCompleted/);
   assert.match(page, /checked=\{task\.isCompleted\}/);
-  assert.match(page, /localStorage\.setItem\(STORAGE_KEY, JSON\.stringify\(updatedTasks\)\)/);
+  assert.match(page, /localStorage\.setItem\(STORAGE_KEY, JSON\.stringify\(storageTasks\)\)/);
   assert.match(page, /task\.date === dateKey/);
 });
 
@@ -61,4 +61,16 @@ test("shows unfinished overdue tasks only in today's column without changing the
   assert.match(page, /Просрочено с \{overdueDate\.format\(dateFromKey\(task\.date\)\)\}/);
   assert.match(page, /if \(taskDate < todayKey\) \{\s*setWeekOffset\(0\)/);
   assert.doesNotMatch(page, /date:\s*todayKey/);
+});
+
+test("deletes with a five-second undo window and restores the original task", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /setTimeout\(\(\) => \{/);
+  assert.match(page, /\}, 5000\)/);
+  assert.match(page, /clearTimeout\(deleteTimerRef\.current\)/);
+  assert.match(page, /snapshot = \{ task: tasksRef\.current\[index\], index \}/);
+  assert.match(page, /restoredTasks\.splice\(Math\.min\(pending\.index, restoredTasks\.length\), 0, pending\.task\)/);
+  assert.match(page, /filter\(\(task\) => task\.id !== editingTaskId\)/);
+  assert.match(page, /Задача удалена/);
+  assert.match(page, />Отменить<\/button>/);
 });

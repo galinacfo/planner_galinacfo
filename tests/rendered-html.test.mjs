@@ -30,3 +30,15 @@ test("calendar logic anchors the week on Monday and scopes today's highlight", a
   assert.match(page, /weekOffset === 0 && sameDay\(date, today\)/);
   assert.match(page, /Array\.from\(\{ length: 7 \}/);
 });
+
+test("stores valid tasks locally and renders titles as React text", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /weeklyPlannerTasks/);
+  assert.match(page, /JSON\.parse\(stored\)/);
+  assert.match(page, /JSON\.stringify\(updatedTasks\)/);
+  assert.match(page, /isCompleted: false/);
+  assert.match(page, /if \(!cleanTitle\)/);
+  assert.match(page, /<p>\{task\.title\}<\/p>/);
+  assert.doesNotMatch(page, /dangerouslySetInnerHTML|innerHTML/);
+  assert.match(page, /catch \{\s*setTasks\(\[\]\)/);
+});

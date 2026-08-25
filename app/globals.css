@@ -15,6 +15,8 @@ button { font: inherit; }
 .week-navigation button { height:40px; border:1px solid #dce3dd; border-radius:11px; background:white; color:var(--ink); cursor:pointer; transition:transform .16s ease,background .16s ease,border-color .16s ease; }
 .week-navigation button:hover:not(:disabled) { transform:translateY(-1px); border-color:#afbeb3; background:#fafcfb; }
 .week-navigation button:focus-visible { outline:3px solid rgba(95,125,106,.25); outline-offset:2px; }
+.week-navigation .add-button { padding:0 16px; border-color:var(--ink); background:var(--ink); color:white; font-weight:700; }
+.week-navigation .add-button:hover { background:#2a3b32; border-color:#2a3b32; }
 .today-button { padding:0 17px; font-weight:600; }
 .today-button:disabled { color:#9aa39d; background:#f3f5f3; cursor:default; }
 .arrow-group { display:flex; gap:6px; }
@@ -36,5 +38,29 @@ button { font: inherit; }
 .empty-icon { width:34px; height:34px; margin-bottom:13px; display:grid; place-items:center; border:1px dashed #cbd3cd; border-radius:50%; font-size:14px; }
 .empty-state p { margin:0 0 5px; color:#7f8982; font-size:13px; font-weight:600; }
 .empty-state span:last-child { font-size:11px; }
-@media (max-width:760px) { .planner-shell{padding:16px}.topbar{align-items:flex-start;flex-direction:column;padding:18px}.week-navigation{width:100%;flex-wrap:wrap}.date-range{order:-1;width:100%;min-width:0;margin:0 0 4px;text-align:left;font-size:18px}.week-grid{min-height:520px;border-radius:16px}.brand-row p{display:none} }
+.task-list { padding:14px 12px; display:flex; flex-direction:column; gap:10px; }
+.task-card { position:relative; padding:14px 12px 12px 15px; overflow:hidden; background:white; border:1px solid #e2e7e3; border-radius:12px; box-shadow:0 5px 16px rgba(36,53,43,.06); }
+.task-card::before { content:""; position:absolute; inset:0 auto 0 0; width:3px; background:var(--priority-color); }
+.task-card p { margin:0 0 10px; overflow-wrap:anywhere; font-size:13px; font-weight:600; line-height:1.4; white-space:pre-wrap; }
+.priority-dot { width:6px; height:6px; margin:0 6px 1px 0; display:inline-block; border-radius:50%; background:var(--priority-color); }
+.priority-label { color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.08em; }
+.priority-high { --priority-color:#b95d55; }
+.priority-medium { --priority-color:#c19345; }
+.priority-low { --priority-color:#6b9076; }
+.modal-backdrop { position:fixed; inset:0; z-index:20; padding:20px; display:grid; place-items:center; background:rgba(20,31,25,.45); backdrop-filter:blur(5px); }
+.task-modal { width:min(100%,520px); padding:26px; background:#fff; border:1px solid var(--line); border-radius:20px; box-shadow:0 28px 80px rgba(20,31,25,.25); }
+.modal-heading { margin-bottom:24px; display:flex; align-items:flex-start; justify-content:space-between; gap:20px; }
+.modal-heading h2 { margin:7px 0 0; font:600 27px/1.15 Georgia,serif; }
+.close-button { width:36px; height:36px; border:1px solid var(--line); border-radius:10px; background:white; color:var(--muted); cursor:pointer; font-size:23px; }
+.field-label { margin:0 0 7px; display:block; color:#455249; font-size:12px; font-weight:700; }
+.task-modal input,.task-modal select { width:100%; height:45px; padding:0 12px; border:1px solid #d9e0db; border-radius:10px; background:#fbfcfb; color:var(--ink); font:inherit; }
+.task-modal input:focus,.task-modal select:focus { outline:3px solid rgba(95,125,106,.18); border-color:var(--sage); }
+.task-modal input[aria-invalid="true"] { border-color:#b95d55; }
+.field-error { margin:6px 0 0; color:#a74b44; font-size:12px; }
+.form-row { margin-top:18px; display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.modal-actions { margin-top:26px; display:flex; justify-content:flex-end; gap:10px; }
+.modal-actions button { height:42px; padding:0 18px; border-radius:10px; cursor:pointer; font-weight:700; }
+.cancel-button { border:1px solid #d9e0db; background:white; color:var(--ink); }
+.save-button { border:1px solid var(--ink); background:var(--ink); color:white; }
+@media (max-width:760px) { .planner-shell{padding:16px}.topbar{align-items:flex-start;flex-direction:column;padding:18px}.week-navigation{width:100%;flex-wrap:wrap}.date-range{order:-1;width:100%;min-width:0;margin:0 0 4px;text-align:left;font-size:18px}.week-navigation .add-button{flex:1}.week-grid{min-height:520px;border-radius:16px}.brand-row p{display:none}.form-row{grid-template-columns:1fr}.task-modal{padding:20px} }
 @media (prefers-reduced-motion:reduce) { .week-navigation button{transition:none} }

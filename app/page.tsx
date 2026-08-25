@@ -9,6 +9,7 @@ const STORAGE_KEY = "weeklyPlannerTasks";
 const DAY_NAMES = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"];
 const shortDate = new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "short" });
 const fullDate = new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long" });
+const overdueDate = new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "short", year: "numeric" });
 
 function startOfWeek(date: Date) {
   const result = new Date(date);
@@ -78,6 +79,8 @@ export default function Home() {
   }, []);
   const weekStart = useMemo(() => addDays(startOfWeek(today), weekOffset * 7), [today, weekOffset]);
   const days = useMemo(() => Array.from({ length: 7 }, (_, index) => addDays(weekStart, index)), [weekStart]);
+  const todayKey = toDateKey(today);
+  const overdueTasks = tasks.filter((task) => task.date < todayKey && !task.isCompleted);
 
   useEffect(() => {
     try {
@@ -138,9 +141,13 @@ export default function Home() {
     } else {
       const newTask: Task = { id: crypto.randomUUID(), title: cleanTitle, date: taskDate, priority, isCompleted: false };
       persistTasks([...tasks, newTask]);
-      const selectedWeek = startOfWeek(dateFromKey(taskDate));
-      const currentWeek = startOfWeek(today);
-      setWeekOffset(Math.round((selectedWeek.getTime() - currentWeek.getTime()) / 604800000));
+      if (taskDate < todayKey) {
+        setWeekOffset(0);
+      } else {
+        const selectedWeek = startOfWeek(dateFromKey(taskDate));
+        const currentWeek = startOfWeek(today);
+        setWeekOffset(Math.round((selectedWeek.getTime() - currentWeek.getTime()) / 604800000));
+      }
     }
     setIsModalOpen(false);
   }
@@ -171,7 +178,9 @@ export default function Home() {
         <div className="week-grid">
           {days.map((date, index) => {
             const isToday = weekOffset === 0 && sameDay(date, today);
-            const dayTasks = tasks.filter((task) => task.date === toDateKey(date));
+            const dateKey = toDateKey(date);
+            const regularTasks = tasks.filter((task) => task.date === dateKey && !(task.date < todayKey && !task.isCompleted));
+            const dayTasks = isToday ? [...overdueTasks, ...regularTasks] : regularTasks;
             return (
               <article className={`day-column${isToday ? " is-today" : ""}`} key={date.toISOString()}>
                 <header className="day-header">
@@ -183,7 +192,7 @@ export default function Home() {
                 ) : (
                   <div className="task-list">
                     {dayTasks.map((task) => (
-                      <div className={`task-card priority-${task.priority}${task.isCompleted ? " is-completed" : ""}`} key={task.id}>
+                      <div className={`task-card priority-${task.priority}${task.isCompleted ? " is-completed" : ""}${task.date < todayKey && !task.isCompleted ? " is-overdue" : ""}`} key={task.id}>
                         <label className="complete-control" title={task.isCompleted ? "Вернуть в работу" : "Отметить выполненной"}>
                           <input type="checkbox" checked={task.isCompleted} onChange={() => toggleTask(task.id)} />
                           <span aria-hidden="true">✓</span>
@@ -192,6 +201,7 @@ export default function Home() {
                         <button className="task-content" type="button" onClick={() => openEditModal(task)} aria-label={`Редактировать задачу: ${task.title}`}>
                           <span className="priority-dot" aria-hidden="true" />
                           <span className="task-title">{task.title}</span>
+                          {task.date < todayKey && !task.isCompleted && <span className="overdue-label">Просрочено с {overdueDate.format(dateFromKey(task.date))}</span>}
                           <span className="priority-label">{task.priority === "high" ? "Высокий" : task.priority === "medium" ? "Средний" : "Низкий"}</span>
                         </button>
                       </div>

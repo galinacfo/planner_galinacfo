@@ -38,7 +38,17 @@ test("stores valid tasks locally and renders titles as React text", async () => 
   assert.match(page, /JSON\.stringify\(updatedTasks\)/);
   assert.match(page, /isCompleted: false/);
   assert.match(page, /if \(!cleanTitle\)/);
-  assert.match(page, /<p>\{task\.title\}<\/p>/);
+  assert.match(page, /className="task-title">\{task\.title\}<\/span>/);
   assert.doesNotMatch(page, /dangerouslySetInnerHTML|innerHTML/);
   assert.match(page, /catch \{\s*setTasks\(\[\]\)/);
+});
+
+test("edits, moves and toggles task completion without losing fields", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /setEditingTaskId\(task\.id\)/);
+  assert.match(page, /task\.id === editingTaskId \? \{ \.\.\.task, title: cleanTitle, date: taskDate, priority \}/);
+  assert.match(page, /isCompleted: !task\.isCompleted/);
+  assert.match(page, /checked=\{task\.isCompleted\}/);
+  assert.match(page, /localStorage\.setItem\(STORAGE_KEY, JSON\.stringify\(updatedTasks\)\)/);
+  assert.match(page, /task\.date === toDateKey\(date\)/);
 });

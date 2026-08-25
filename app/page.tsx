@@ -70,6 +70,7 @@ export default function Home() {
   const [taskDate, setTaskDate] = useState("");
   const [priority, setPriority] = useState<Priority>("medium");
   const [titleError, setTitleError] = useState("");
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const today = useMemo(() => {
     const value = new Date();
     value.setHours(0, 0, 0, 0);
@@ -99,11 +100,30 @@ export default function Home() {
   }, [isModalOpen]);
 
   function openModal() {
+    setEditingTaskId(null);
     setTitle("");
     setTaskDate(toDateKey(today));
     setPriority("medium");
     setTitleError("");
     setIsModalOpen(true);
+  }
+
+  function openEditModal(task: Task) {
+    setEditingTaskId(task.id);
+    setTitle(task.title);
+    setTaskDate(task.date);
+    setPriority(task.priority);
+    setTitleError("");
+    setIsModalOpen(true);
+  }
+
+  function persistTasks(updatedTasks: Task[]) {
+    setTasks(updatedTasks);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedTasks));
+  }
+
+  function toggleTask(taskId: string) {
+    persistTasks(tasks.map((task) => task.id === taskId ? { ...task, isCompleted: !task.isCompleted } : task));
   }
 
   function saveTask(event: FormEvent<HTMLFormElement>) {
@@ -113,13 +133,15 @@ export default function Home() {
       setTitleError("Введите название задачи");
       return;
     }
-    const newTask: Task = { id: crypto.randomUUID(), title: cleanTitle, date: taskDate, priority, isCompleted: false };
-    const updatedTasks = [...tasks, newTask];
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedTasks));
-    setTasks(updatedTasks);
-    const selectedWeek = startOfWeek(dateFromKey(taskDate));
-    const currentWeek = startOfWeek(today);
-    setWeekOffset(Math.round((selectedWeek.getTime() - currentWeek.getTime()) / 604800000));
+    if (editingTaskId) {
+      persistTasks(tasks.map((task) => task.id === editingTaskId ? { ...task, title: cleanTitle, date: taskDate, priority } : task));
+    } else {
+      const newTask: Task = { id: crypto.randomUUID(), title: cleanTitle, date: taskDate, priority, isCompleted: false };
+      persistTasks([...tasks, newTask]);
+      const selectedWeek = startOfWeek(dateFromKey(taskDate));
+      const currentWeek = startOfWeek(today);
+      setWeekOffset(Math.round((selectedWeek.getTime() - currentWeek.getTime()) / 604800000));
+    }
     setIsModalOpen(false);
   }
 
@@ -161,10 +183,17 @@ export default function Home() {
                 ) : (
                   <div className="task-list">
                     {dayTasks.map((task) => (
-                      <div className={`task-card priority-${task.priority}`} key={task.id}>
-                        <span className="priority-dot" aria-hidden="true" />
-                        <p>{task.title}</p>
-                        <span className="priority-label">{task.priority === "high" ? "Высокий" : task.priority === "medium" ? "Средний" : "Низкий"}</span>
+                      <div className={`task-card priority-${task.priority}${task.isCompleted ? " is-completed" : ""}`} key={task.id}>
+                        <label className="complete-control" title={task.isCompleted ? "Вернуть в работу" : "Отметить выполненной"}>
+                          <input type="checkbox" checked={task.isCompleted} onChange={() => toggleTask(task.id)} />
+                          <span aria-hidden="true">✓</span>
+                          <span className="sr-only">{task.isCompleted ? "Вернуть задачу в работу" : "Отметить задачу выполненной"}</span>
+                        </label>
+                        <button className="task-content" type="button" onClick={() => openEditModal(task)} aria-label={`Редактировать задачу: ${task.title}`}>
+                          <span className="priority-dot" aria-hidden="true" />
+                          <span className="task-title">{task.title}</span>
+                          <span className="priority-label">{task.priority === "high" ? "Высокий" : task.priority === "medium" ? "Средний" : "Низкий"}</span>
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -179,7 +208,7 @@ export default function Home() {
         <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setIsModalOpen(false); }}>
           <section className="task-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
             <div className="modal-heading">
-              <div><p className="eyebrow">Новая задача</p><h2 id="modal-title">Что нужно сделать?</h2></div>
+              <div><p className="eyebrow">{editingTaskId ? "Редактирование" : "Новая задача"}</p><h2 id="modal-title">{editingTaskId ? "Изменить задачу" : "Что нужно сделать?"}</h2></div>
               <button className="close-button" type="button" aria-label="Закрыть" onClick={() => setIsModalOpen(false)}>×</button>
             </div>
             <form onSubmit={saveTask} noValidate>

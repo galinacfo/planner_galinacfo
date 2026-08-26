@@ -39,13 +39,11 @@ button { font: inherit; }
 .empty-state p { margin:0 0 5px; color:#7f8982; font-size:13px; font-weight:600; }
 .empty-state span:last-child { font-size:11px; }
 .task-list { padding:14px 12px; display:flex; flex-direction:column; gap:10px; }
-.task-card { position:relative; padding:13px 10px 12px 12px; overflow:hidden; display:flex; align-items:flex-start; gap:9px; background:white; border:1px solid #e2e7e3; border-radius:12px; box-shadow:0 5px 16px rgba(36,53,43,.06); transition:opacity .16s ease,background .16s ease; }
+.task-card { position:relative; padding:13px 10px 12px 12px; overflow:hidden; display:flex; align-items:flex-start; gap:9px; background:var(--priority-background); border:1px solid var(--priority-border); border-radius:12px; box-shadow:0 5px 16px rgba(36,53,43,.06); transition:opacity .16s ease,background .16s ease; }
 .task-card::before { content:""; position:absolute; inset:0 auto 0 0; width:3px; background:var(--priority-color); }
 .task-content { min-width:0; flex:1; padding:0; border:0; background:transparent; color:inherit; cursor:pointer; text-align:left; }
 .task-content:focus-visible { outline:2px solid var(--sage); outline-offset:4px; border-radius:4px; }
 .task-title { margin:0 0 10px; display:block; overflow-wrap:anywhere; font-size:13px; font-weight:600; line-height:1.4; white-space:pre-wrap; }
-.priority-dot { width:6px; height:6px; margin:0 6px 1px 0; display:inline-block; border-radius:50%; background:var(--priority-color); }
-.priority-label { color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.08em; }
 .complete-control { position:relative; width:19px; height:19px; flex:0 0 19px; cursor:pointer; }
 .complete-control input { position:absolute; width:1px; height:1px; opacity:0; }
 .complete-control > span[aria-hidden] { width:19px; height:19px; display:grid; place-items:center; border:1.5px solid #bdc7c0; border-radius:6px; background:white; color:transparent; font-size:11px; font-weight:800; transition:background .15s ease,border-color .15s ease; }
@@ -56,9 +54,9 @@ button { font: inherit; }
 .task-card.is-overdue { --priority-color:#bd5c56; background:#fff0ef; border-color:#efcfcc; box-shadow:0 5px 16px rgba(151,61,53,.08); }
 .overdue-label { margin:-2px 0 10px; display:block; color:#a34842; font-size:10px; font-weight:700; line-height:1.35; }
 .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
-.priority-high { --priority-color:#b95d55; }
-.priority-medium { --priority-color:#c19345; }
-.priority-low { --priority-color:#6b9076; }
+.priority-high { --priority-color:#b95d55; --priority-background:#fff0ef; --priority-border:#efcfcc; }
+.priority-medium { --priority-color:#b5812d; --priority-background:#fff8e8; --priority-border:#ead9ad; }
+.priority-low { --priority-color:#62866d; --priority-background:#edf6ef; --priority-border:#cfe1d3; }
 .modal-backdrop { position:fixed; inset:0; z-index:20; padding:20px; display:grid; place-items:center; background:rgba(20,31,25,.45); backdrop-filter:blur(5px); }
 .task-modal { width:min(100%,520px); padding:26px; background:#fff; border:1px solid var(--line); border-radius:20px; box-shadow:0 28px 80px rgba(20,31,25,.25); }
 .modal-heading { margin-bottom:24px; display:flex; align-items:flex-start; justify-content:space-between; gap:20px; }

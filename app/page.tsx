@@ -257,10 +257,10 @@ export default function Home() {
                           <span className="sr-only">{task.isCompleted ? "Вернуть задачу в работу" : "Отметить задачу выполненной"}</span>
                         </label>
                         <button className="task-content" type="button" onClick={() => openEditModal(task)} aria-label={`Редактировать задачу: ${task.title}`}>
-                          <span className="priority-dot" aria-hidden="true" />
+
                           <span className="task-title">{task.title}</span>
                           {task.date < todayKey && !task.isCompleted && <span className="overdue-label">Просрочено с {overdueDate.format(dateFromKey(task.date))}</span>}
-                          <span className="priority-label">{task.priority === "high" ? "Высокий" : task.priority === "medium" ? "Средний" : "Низкий"}</span>
+
                         </button>
                       </div>
                     ))}

@@ -96,3 +96,16 @@ test("provides mobile-friendly touch targets and readable task text", async () =
   assert.match(css, /\.close-button\{width:44px;height:44px\}/);
   assert.match(css, /\.task-modal button\{min-height:44px\}/);
 });
+
+test("renders the mobile modal as a keyboard-safe bottom sheet", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(page, /document\.body\.style\.overflow = "hidden"/);
+  assert.match(page, /document\.body\.style\.overflow = previousOverflow/);
+  assert.match(css, /\.modal-backdrop\{padding:0;place-items:end center\}/);
+  assert.match(css, /\.task-modal\{position:relative;width:100%;max-height:90dvh/);
+  assert.match(css, /overflow-y:auto;overscroll-behavior:contain;border-radius:22px 22px 0 0/);
+  assert.match(css, /\.modal-actions\{position:sticky;z-index:2;bottom:0/);
+  assert.match(css, /env\(safe-area-inset-bottom\)/);
+  assert.match(css, /@keyframes sheet-in/);
+});

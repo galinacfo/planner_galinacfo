@@ -85,3 +85,14 @@ test("builds a stable sticky mobile header with a floating add button", async ()
   assert.match(css, /\.mobile-add-button\{position:fixed;z-index:18;right:18px;bottom:18px/);
   assert.match(css, /\.week-controls\{grid-row:2;display:grid;grid-template-columns:44px minmax\(0,1fr\) 44px/);
 });
+
+test("provides mobile-friendly touch targets and readable task text", async () => {
+  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(css, /\.complete-control\{width:44px;height:44px;flex-basis:44px/);
+  assert.match(css, /\.complete-control > span\[aria-hidden\]\{width:22px;height:22px\}/);
+  assert.match(css, /\.task-content\{min-height:44px/);
+  assert.match(css, /\.task-title\{margin:0;font-size:15px;line-height:1\.45\}/);
+  assert.match(css, /\.overdue-label\{margin:6px 0 0;font-size:12px\}/);
+  assert.match(css, /\.close-button\{width:44px;height:44px\}/);
+  assert.match(css, /\.task-modal button\{min-height:44px\}/);
+});

@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, TouchEvent, useEffect, useMemo, useRef, useState } from "react";
 
 type Priority = "high" | "medium" | "low";
 type Task = { id: string; title: string; date: string; priority: Priority; isCompleted: boolean };
@@ -78,6 +78,8 @@ export default function Home() {
   const tasksRef = useRef<Task[]>([]);
   const pendingDeleteRef = useRef<PendingDelete | null>(null);
   const deleteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const touchStartXRef = useRef<number | null>(null);
+  const touchStartYRef = useRef<number | null>(null);
   const today = useMemo(() => {
     const value = new Date();
     value.setHours(0, 0, 0, 0);
@@ -202,6 +204,38 @@ export default function Home() {
     setWeekOffset((value) => value + direction);
     setSelectedDayIndex(0);
   }
+  function changeSelectedDay(direction: number) {
+    if (direction > 0 && selectedDayIndex === 6) {
+      setWeekOffset((value) => value + 1);
+      setSelectedDayIndex(0);
+      return;
+    }
+    if (direction < 0 && selectedDayIndex === 0) {
+      setWeekOffset((value) => value - 1);
+      setSelectedDayIndex(6);
+      return;
+    }
+    setSelectedDayIndex((value) => value + direction);
+  }
+
+  function handleDayTouchStart(event: TouchEvent<HTMLDivElement>) {
+    const touch = event.changedTouches[0];
+    touchStartXRef.current = touch.clientX;
+    touchStartYRef.current = touch.clientY;
+  }
+
+  function handleDayTouchEnd(event: TouchEvent<HTMLDivElement>) {
+    const startX = touchStartXRef.current;
+    const startY = touchStartYRef.current;
+    touchStartXRef.current = null;
+    touchStartYRef.current = null;
+    if (startX === null || startY === null) return;
+    const touch = event.changedTouches[0];
+    const deltaX = touch.clientX - startX;
+    const deltaY = touch.clientY - startY;
+    if (Math.abs(deltaX) < 50 || Math.abs(deltaX) <= Math.abs(deltaY) * 1.2) return;
+    changeSelectedDay(deltaX < 0 ? 1 : -1);
+  }
 
   function tasksForDay(date: Date, isToday: boolean) {
     const dateKey = toDateKey(date);
@@ -271,7 +305,7 @@ export default function Home() {
             );
           })}
         </div>
-        <div className="week-grid">
+        <div className="week-grid" onTouchStart={handleDayTouchStart} onTouchEnd={handleDayTouchEnd}>
           {days.map((date, index) => {
             const isToday = weekOffset === 0 && sameDay(date, today);
             const dayTasks = tasksForDay(date, isToday);

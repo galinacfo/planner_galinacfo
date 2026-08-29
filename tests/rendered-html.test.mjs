@@ -90,8 +90,8 @@ test("provides mobile-friendly touch targets and readable task text", async () =
   const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
   assert.match(css, /\.complete-control\{width:44px;height:44px;flex-basis:44px/);
   assert.match(css, /\.complete-control > span\[aria-hidden\]\{width:22px;height:22px\}/);
-  assert.match(css, /\.task-content\{min-height:44px/);
-  assert.match(css, /\.task-title\{margin:0;font-size:15px;line-height:1\.45\}/);
+  assert.match(css, /\.task-content\{width:100%;min-height:44px/);
+  assert.match(css, /\.task-title\{margin:0;overflow-wrap:anywhere;white-space:pre-wrap;font-size:15px;line-height:1\.45\}/);
   assert.match(css, /\.overdue-label\{margin:6px 0 0;font-size:12px\}/);
   assert.match(css, /\.close-button\{width:44px;height:44px\}/);
   assert.match(css, /\.task-modal button\{min-height:44px\}/);
@@ -108,4 +108,24 @@ test("renders the mobile modal as a keyboard-safe bottom sheet", async () => {
   assert.match(css, /\.modal-actions\{position:sticky;z-index:2;bottom:0/);
   assert.match(css, /env\(safe-area-inset-bottom\)/);
   assert.match(css, /@keyframes sheet-in/);
+});
+
+test("makes mobile task cards touch-friendly and preserves their states", async () => {
+  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(css, /\.task-card\{width:100%;padding:15px;gap:8px;align-items:center\}/);
+  assert.match(css, /\.task-content\{width:100%;min-height:44px;align-self:stretch/);
+  assert.match(css, /overflow-wrap:anywhere;white-space:pre-wrap;font-size:15px/);
+  assert.match(css, /\.task-card\.is-completed\{opacity:\.82;background:var\(--priority-background\)/);
+  assert.match(css, /\.task-card\.is-overdue\{background:#fff0ef;border-color:#efcfcc\}/);
+});
+
+test("supports swipe day navigation across week boundaries", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(page, /selectedDayIndex === 6[\s\S]*setWeekOffset\(\(value\) => value \+ 1\)[\s\S]*setSelectedDayIndex\(0\)/);
+  assert.match(page, /selectedDayIndex === 0[\s\S]*setWeekOffset\(\(value\) => value - 1\)[\s\S]*setSelectedDayIndex\(6\)/);
+  assert.match(page, /Math\.abs\(deltaX\) < 50/);
+  assert.match(page, /onTouchStart=\{handleDayTouchStart\} onTouchEnd=\{handleDayTouchEnd\}/);
+  assert.match(css, /touch-action:pan-y/);
+  assert.match(css, /@keyframes day-in/);
 });

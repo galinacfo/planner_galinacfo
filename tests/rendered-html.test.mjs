@@ -82,7 +82,7 @@ test("builds a stable sticky mobile header with a floating add button", async ()
   assert.match(page, /className="mobile-add-button"[\s\S]*onClick=\{openModal\}/);
   assert.match(css, /\.topbar\{position:sticky;z-index:10;top:8px/);
   assert.match(css, /\.mobile-add-button \{ display:none; \}/);
-  assert.match(css, /\.mobile-add-button\{position:fixed;z-index:18;right:18px;bottom:18px/);
+  assert.match(css, /\.mobile-add-button\{position:fixed;z-index:18;right:18px;bottom:calc\(18px \+ env\(safe-area-inset-bottom\)\)/);
   assert.match(css, /\.week-controls\{grid-row:2;display:grid;grid-template-columns:44px minmax\(0,1fr\) 44px/);
 });
 
@@ -128,4 +128,29 @@ test("supports swipe day navigation across week boundaries", async () => {
   assert.match(page, /onTouchStart=\{handleDayTouchStart\} onTouchEnd=\{handleDayTouchEnd\}/);
   assert.match(css, /touch-action:pan-y/);
   assert.match(css, /@keyframes day-in/);
+});
+
+test("adds a safe-area-aware undo countdown without covering tasks", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(page, /planner-shell\$\{pendingDelete \? " has-toast" : ""\}/);
+  assert.match(page, /key=\{pendingDelete\.task\.id\}/);
+  assert.match(css, /\.undo-toast::after[\s\S]*animation:toast-timer 5s linear forwards/);
+  assert.match(css, /\.undo-toast button \{ min-height:44px/);
+  assert.match(css, /bottom:calc\(84px \+ env\(safe-area-inset-bottom\)\)/);
+  assert.match(css, /\.planner-shell\.has-toast\{padding-bottom:calc\(180px \+ env\(safe-area-inset-bottom\)\)\}/);
+});
+
+test("uses dynamic viewport sizing and four responsive layout ranges", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(css, /min-height:100dvh/);
+  assert.match(css, /@media \(max-width:480px\)/);
+  assert.match(css, /@media \(min-width:481px\) and \(max-width:800px\)/);
+  assert.match(css, /grid-auto-columns:calc\(\(100% - 12px\)\/2\)/);
+  assert.match(css, /@media \(min-width:801px\) and \(max-width:1100px\)/);
+  assert.match(css, /grid-auto-columns:calc\(\(100% - 24px\)\/3\)/);
+  assert.match(css, /@media \(min-width:1101px\)/);
+  assert.match(css, /scroll-snap-type:x mandatory/);
+  assert.match(page, /selectedColumn\?\.scrollIntoView/);
 });

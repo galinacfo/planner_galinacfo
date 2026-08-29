@@ -80,6 +80,7 @@ export default function Home() {
   const deleteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchStartXRef = useRef<number | null>(null);
   const touchStartYRef = useRef<number | null>(null);
+  const weekGridRef = useRef<HTMLDivElement | null>(null);
   const today = useMemo(() => {
     const value = new Date();
     value.setHours(0, 0, 0, 0);
@@ -122,6 +123,13 @@ export default function Home() {
       document.body.style.overflow = previousOverflow;
     };
   }, [isModalOpen]);
+
+  useEffect(() => {
+    const grid = weekGridRef.current;
+    if (!grid || !window.matchMedia("(min-width: 481px) and (max-width: 1100px)").matches) return;
+    const selectedColumn = grid.querySelector<HTMLElement>(".day-column.is-selected");
+    selectedColumn?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
+  }, [selectedDayIndex, weekOffset]);
 
   function openModal() {
     setEditingTaskId(null);
@@ -268,7 +276,7 @@ export default function Home() {
   }
 
   return (
-    <main className="planner-shell">
+    <main className={`planner-shell${pendingDelete ? " has-toast" : ""}`}>
       <header className="topbar">
         <div className="brand-row">
           <div className="brand-mark" aria-hidden="true">✓</div>
@@ -305,7 +313,7 @@ export default function Home() {
             );
           })}
         </div>
-        <div className="week-grid" onTouchStart={handleDayTouchStart} onTouchEnd={handleDayTouchEnd}>
+        <div ref={weekGridRef} className="week-grid" onTouchStart={handleDayTouchStart} onTouchEnd={handleDayTouchEnd}>
           {days.map((date, index) => {
             const isToday = weekOffset === 0 && sameDay(date, today);
             const dayTasks = tasksForDay(date, isToday);
@@ -368,7 +376,7 @@ export default function Home() {
         </div>
       )}
       {pendingDelete && (
-        <div className="undo-toast" role="status" aria-live="polite">
+        <div className="undo-toast" role="status" aria-live="polite" key={pendingDelete.task.id}>
           <span className="toast-mark" aria-hidden="true">×</span>
           <span>Задача удалена</span>
           <button type="button" onClick={undoDelete}>Отменить</button>

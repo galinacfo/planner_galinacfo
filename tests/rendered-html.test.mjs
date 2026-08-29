@@ -56,7 +56,7 @@ test("edits, moves and toggles task completion without losing fields", async () 
 test("shows unfinished overdue tasks only in today's column without changing their date", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
   assert.match(page, /task\.date < todayKey && !task\.isCompleted/);
-  assert.match(page, /const dayTasks = isToday \? \[\.\.\.overdueTasks, \.\.\.regularTasks\] : regularTasks/);
+  assert.match(page, /return isToday \? \[\.\.\.overdueTasks, \.\.\.regularTasks\] : regularTasks/);
   assert.match(page, /task\.date === dateKey && !\(task\.date < todayKey && !task\.isCompleted\)/);
   assert.match(page, /Просрочено с \{overdueDate\.format\(dateFromKey\(task\.date\)\)\}/);
   assert.match(page, /if \(taskDate < todayKey\) \{\s*setWeekOffset\(0\)/);

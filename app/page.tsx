@@ -66,6 +66,7 @@ function getWeekNumber(date: Date) {
 
 export default function Home() {
   const [weekOffset, setWeekOffset] = useState(0);
+  const [selectedDayIndex, setSelectedDayIndex] = useState(() => (new Date().getDay() + 6) % 7);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -187,6 +188,21 @@ export default function Home() {
     persistTasks(tasks.map((task) => task.id === taskId ? { ...task, isCompleted: !task.isCompleted } : task));
   }
 
+  function goToToday() {
+    setWeekOffset(0);
+    setSelectedDayIndex((today.getDay() + 6) % 7);
+  }
+
+  function changeWeek(direction: number) {
+    setWeekOffset((value) => value + direction);
+    setSelectedDayIndex(0);
+  }
+
+  function tasksForDay(date: Date, isToday: boolean) {
+    const dateKey = toDateKey(date);
+    const regularTasks = tasks.filter((task) => task.date === dateKey && !(task.date < todayKey && !task.isCompleted));
+    return isToday ? [...overdueTasks, ...regularTasks] : regularTasks;
+  }
   function saveTask(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const cleanTitle = title.trim();
@@ -201,10 +217,12 @@ export default function Home() {
       persistTasks([...tasks, newTask]);
       if (taskDate < todayKey) {
         setWeekOffset(0);
+        setSelectedDayIndex((today.getDay() + 6) % 7);
       } else {
         const selectedWeek = startOfWeek(dateFromKey(taskDate));
         const currentWeek = startOfWeek(today);
         setWeekOffset(Math.round((selectedWeek.getTime() - currentWeek.getTime()) / 604800000));
+        setSelectedDayIndex((dateFromKey(taskDate).getDay() + 6) % 7);
       }
     }
     setIsModalOpen(false);
@@ -219,10 +237,10 @@ export default function Home() {
         </div>
         <nav className="week-navigation" aria-label="Навигация по неделям">
           <button className="add-button" type="button" onClick={openModal}><span aria-hidden="true">＋</span> Добавить задачу</button>
-          <button className="today-button" type="button" onClick={() => setWeekOffset(0)} disabled={weekOffset === 0}>Сегодня</button>
+          <button className="today-button" type="button" onClick={goToToday} disabled={weekOffset === 0}>Сегодня</button>
           <div className="arrow-group">
-            <button type="button" aria-label="Предыдущая неделя" onClick={() => setWeekOffset((value) => value - 1)}>←</button>
-            <button type="button" aria-label="Следующая неделя" onClick={() => setWeekOffset((value) => value + 1)}>→</button>
+            <button type="button" aria-label="Предыдущая неделя" onClick={() => changeWeek(-1)}>←</button>
+            <button type="button" aria-label="Следующая неделя" onClick={() => changeWeek(1)}>→</button>
           </div>
           <p className="date-range" aria-live="polite">{rangeLabel(weekStart, days[6])}</p>
         </nav>
@@ -233,14 +251,25 @@ export default function Home() {
           <p className="eyebrow">Недельный обзор</p>
           <p className="week-number">Неделя {getWeekNumber(weekStart).toString().padStart(2, "0")}</p>
         </div>
+        <div className="mobile-day-switcher" role="tablist" aria-label="Выберите день недели">
+          {days.map((date, index) => {
+            const isToday = weekOffset === 0 && sameDay(date, today);
+            const taskCount = tasksForDay(date, isToday).length;
+            return (
+              <button type="button" role="tab" aria-selected={selectedDayIndex === index} className={`${selectedDayIndex === index ? "is-selected" : ""}${isToday ? " is-current" : ""}`} onClick={() => setSelectedDayIndex(index)} key={date.toISOString()}>
+                <span>{DAY_NAMES[index].slice(0, 2)}</span>
+                <strong>{date.getDate()}</strong>
+                {taskCount > 0 && <i aria-label={`${taskCount} задач`} />}
+              </button>
+            );
+          })}
+        </div>
         <div className="week-grid">
           {days.map((date, index) => {
             const isToday = weekOffset === 0 && sameDay(date, today);
-            const dateKey = toDateKey(date);
-            const regularTasks = tasks.filter((task) => task.date === dateKey && !(task.date < todayKey && !task.isCompleted));
-            const dayTasks = isToday ? [...overdueTasks, ...regularTasks] : regularTasks;
+            const dayTasks = tasksForDay(date, isToday);
             return (
-              <article className={`day-column${isToday ? " is-today" : ""}`} key={date.toISOString()}>
+              <article className={`day-column${isToday ? " is-today" : ""}${selectedDayIndex === index ? " is-selected" : ""}`} key={date.toISOString()}>
                 <header className="day-header">
                   <div><p className="day-name">{DAY_NAMES[index]}</p><p className="day-date">{fullDate.format(date)}</p></div>
                   {isToday && <span className="today-pill">Сегодня</span>}

@@ -237,14 +237,16 @@ export default function Home() {
         </div>
         <nav className="week-navigation" aria-label="Навигация по неделям">
           <button className="add-button" type="button" onClick={openModal}><span aria-hidden="true">＋</span> Добавить задачу</button>
-          <button className="today-button" type="button" onClick={goToToday} disabled={weekOffset === 0}>Сегодня</button>
-          <div className="arrow-group">
+          <p className="date-range" aria-live="polite">{rangeLabel(weekStart, days[6])}</p>
+          <div className="week-controls">
             <button type="button" aria-label="Предыдущая неделя" onClick={() => changeWeek(-1)}>←</button>
+            <button className="today-button" type="button" onClick={goToToday} disabled={weekOffset === 0}>Сегодня</button>
             <button type="button" aria-label="Следующая неделя" onClick={() => changeWeek(1)}>→</button>
           </div>
-          <p className="date-range" aria-live="polite">{rangeLabel(weekStart, days[6])}</p>
         </nav>
       </header>
+
+      <button className="mobile-add-button" type="button" onClick={openModal} aria-label="Добавить задачу">＋</button>
 
       <section className="week-section" aria-label="Задачи на неделю">
         <div className="section-heading">

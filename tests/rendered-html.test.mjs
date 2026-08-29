@@ -74,3 +74,14 @@ test("deletes with a five-second undo window and restores the original task", as
   assert.match(page, /Задача удалена/);
   assert.match(page, />Отменить<\/button>/);
 });
+
+test("builds a stable sticky mobile header with a floating add button", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(page, /className="week-controls"[\s\S]*changeWeek\(-1\)[\s\S]*className="today-button"[\s\S]*changeWeek\(1\)/);
+  assert.match(page, /className="mobile-add-button"[\s\S]*onClick=\{openModal\}/);
+  assert.match(css, /\.topbar\{position:sticky;z-index:10;top:8px/);
+  assert.match(css, /\.mobile-add-button \{ display:none; \}/);
+  assert.match(css, /\.mobile-add-button\{position:fixed;z-index:18;right:18px;bottom:18px/);
+  assert.match(css, /\.week-controls\{grid-row:2;display:grid;grid-template-columns:44px minmax\(0,1fr\) 44px/);
+});
